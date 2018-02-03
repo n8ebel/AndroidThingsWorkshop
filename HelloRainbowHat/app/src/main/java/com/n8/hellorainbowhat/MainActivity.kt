@@ -1,11 +1,19 @@
 package com.n8.hellorainbowhat
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import com.google.android.things.contrib.driver.button.Button
 import com.google.android.things.contrib.driver.pwmspeaker.Speaker
 import com.google.android.things.contrib.driver.rainbowhat.RainbowHat
 import com.google.android.things.pio.Gpio
+import com.google.android.things.contrib.driver.apa102.Apa102
+
+sealed class Output(val color: Int, val frequency:Double)
+object RED : Output(Color.RED, 261.626)
+object GREEN : Output(Color.GREEN, 293.665)
+object BLUE : Output(Color.BLUE, 329.628)
 
 class MainActivity : Activity() {
 
@@ -19,6 +27,12 @@ class MainActivity : Activity() {
 
     val speaker:Speaker by lazy { RainbowHat.openPiezo() }
 
+    val ledstrip:Apa102 by lazy {
+        RainbowHat.openLedStrip().apply {
+            brightness = 1
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -29,40 +43,79 @@ class MainActivity : Activity() {
 
         speaker.stop()
 
-        buttonA.setOnButtonEventListener { button, pressed ->
+        clearLedStrip()
+
+        fun handleButtonEvent(pressed:Boolean, output: Output) {
             when(pressed){
-                true -> speaker.play(261.626)
-                false -> speaker.stop()
+                true -> handleButtonPress(output)
+                false -> handleButtonUp(output)
             }
-            ledRed.value = pressed
+        }
+
+        buttonA.setOnButtonEventListener { button, pressed ->
+            handleButtonEvent(pressed, RED)
         }
         buttonB.setOnButtonEventListener { button, pressed ->
-            when(pressed){
-                true -> speaker.play(293.665)
-                false -> speaker.stop()
-            }
-            ledGreen.value = pressed
+            handleButtonEvent(pressed, GREEN)
         }
         buttonC.setOnButtonEventListener { button, pressed ->
-            when(pressed){
-                true -> speaker.play(329.628)
-                false -> speaker.stop()
-            }
-            ledBlue.value = pressed
+            handleButtonEvent(pressed, BLUE)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        buttonA.close()
-        buttonB.close()
-        buttonC.close()
+        try {
+            buttonA.close()
+            buttonB.close()
+            buttonC.close()
 
-        ledRed.close()
-        ledGreen.close()
-        ledBlue.close()
+            ledRed.close()
+            ledGreen.close()
+            ledBlue.close()
 
-        speaker.close()
+            speaker.close()
+            ledstrip.close()
+        } catch (e: Throwable) {
+            Log.e("onDestroy", e.message)
+        }
     }
 
+    private fun handleButtonPress(output:Output) {
+        speaker.play(output.frequency)
+        setLedStripColor(output.color)
+
+        when (output) {
+            RED -> ledRed
+            GREEN -> ledGreen
+            BLUE -> ledBlue
+        }.value = true
+    }
+
+    private fun handleButtonUp(output:Output) {
+        speaker.stop()
+        clearLedStrip()
+
+        when (output) {
+            RED -> ledRed
+            GREEN -> ledGreen
+            BLUE -> ledBlue
+        }.value = false
+    }
+
+    private fun setLedStripColor(color: Int) {
+        val rainbow = IntArray(RainbowHat.LEDSTRIP_LENGTH)
+        for (i in rainbow.indices) {
+            rainbow[i] = color
+        }
+        ledstrip.write(rainbow)
+    }
+
+    private fun clearLedStrip() {
+        val rainbow = IntArray(RainbowHat.LEDSTRIP_LENGTH)
+        for (i in rainbow.indices) {
+            rainbow[i] = Color.TRANSPARENT
+        }
+        ledstrip.write(rainbow)
+    }
 }
