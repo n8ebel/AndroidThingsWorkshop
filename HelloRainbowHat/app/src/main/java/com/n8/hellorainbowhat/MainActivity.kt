@@ -36,14 +36,15 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // turn off all leds
+        // turn off all RGB leds
         ledRed.value = false
         ledGreen.value = false
         ledBlue.value = false
 
-        speaker.stop()
-
+        // turn off the LED strip
         clearLedStrip()
+
+        speaker.stop()
 
         fun handleButtonEvent(pressed:Boolean, output: Output) {
             when(pressed){
@@ -109,13 +110,10 @@ class MainActivity : Activity() {
             rainbow[i] = color
         }
         ledstrip.write(rainbow)
+        ledstrip.write(rainbow) // workaround for my board/hat to make led update immediate
     }
 
     private fun clearLedStrip() {
-        val rainbow = IntArray(RainbowHat.LEDSTRIP_LENGTH)
-        for (i in rainbow.indices) {
-            rainbow[i] = Color.TRANSPARENT
-        }
-        ledstrip.write(rainbow)
+        setLedStripColor(Color.TRANSPARENT)
     }
 }
