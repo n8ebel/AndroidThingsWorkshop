@@ -111,7 +111,6 @@ class MainActivity : Activity() {
             rainbow[i] = color
         }
         ledstrip.write(rainbow)
-        ledstrip.write(rainbow) // workaround for my board/hat to make led update immediate
     }
 
     private fun clearLedStrip() {

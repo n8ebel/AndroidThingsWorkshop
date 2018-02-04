@@ -35,5 +35,8 @@ dependencies {
     // https://github.com/androidthings/contrib-drivers/tree/master/rainbowhat
     compile 'com.google.android.things.contrib:driver-rainbowhat:0.8'
 
+    // include this to get a needed bugfix for the apa102 driver
+    implementation 'com.google.android.things.contrib:driver-apa102:0.5'
+
     testImplementation 'junit:junit:4.12'
 }
