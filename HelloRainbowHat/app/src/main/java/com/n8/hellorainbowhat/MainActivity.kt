@@ -37,9 +37,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         // turn off all RGB leds
-        ledRed.value = false
-        ledGreen.value = false
-        ledBlue.value = false
+        clearRGBLEDs()
 
         // turn off the LED strip
         clearLedStrip()
@@ -71,12 +69,15 @@ class MainActivity : Activity() {
             buttonB.close()
             buttonC.close()
 
+            clearRGBLEDs()
             ledRed.close()
             ledGreen.close()
             ledBlue.close()
 
-            speaker.close()
+            clearLedStrip()
             ledstrip.close()
+
+            speaker.close()
         } catch (e: Throwable) {
             Log.e("onDestroy", e.message)
         }
@@ -115,5 +116,11 @@ class MainActivity : Activity() {
 
     private fun clearLedStrip() {
         setLedStripColor(Color.TRANSPARENT)
+    }
+
+    private fun clearRGBLEDs() {
+        ledRed.value = false
+        ledGreen.value = false
+        ledBlue.value = false
     }
 }
